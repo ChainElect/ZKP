@@ -1,0 +1,20 @@
+{
+    "a": [
+        "0x34f832d9f6fe198d395dc9385284b6e10609a7170c0513b1b8ec0882fd4a5768",
+        "0x6a2498e6aaf64e72b8b5992fc56d795a3a3cd2e02a28fa50f0879a2a0362c9fe"
+    ],
+    "b": [
+        [
+            "0x4e6d34ebf4cd68e69a3d20a93cbdc07a7d9ff88f50932aaf7c04b94b1113ed8e",
+            "0x55979e6a6f24d2ad2d9c74a6e315d3f42b87b199ce77de76f4045b929b03a4cb"
+        ],
+        [
+            "0x28316f93dbb5da9291d23f9f0db4f7073db7c56d2b8cc781015c743c9c4563d5",
+            "0x2b5d74b7420d93b52a557a7db4b4137b33d530e0f7e393c5e462a6b632509bff"
+        ]
+    ],
+    "c": [
+        "0x4e5c63d623bbb2e0362baf8b28f7506814f3c7da52d295720f1f4f29f7727484",
+        "0x709f8791ee684db71a16352077bca385b5c2d423519d4b3c4e6f343e71a049da"
+    ]
+}

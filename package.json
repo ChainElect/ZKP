@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0",
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "hardhat": "^2.22.18",
+    "merkletreejs": "^0.4.1",
+    "snarkjs": "^0.7.5"
+  }
+}
