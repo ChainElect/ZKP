@@ -7,37 +7,44 @@ template PoseidonTree(depth) {
     signal input root;
     signal input pathElements[depth];
     signal input pathIndices[depth];
-
+    
     component hashers[depth];
-    signal computedPath[depth + 1];
-    computedPath[0] <== leaf;
-
-    // Declare signals outside the loop
+    signal computedPath[depth+1];
     signal left[depth];
     signal right[depth];
 
+    // Temporary signals for the multiplications:
+    signal left_tmp1[depth];
+    signal left_tmp2[depth];
+    signal right_tmp1[depth];
+    signal right_tmp2[depth];
+
+    computedPath[0] <== leaf;
+
     for (var i = 0; i < depth; i++) {
         hashers[i] = Poseidon(2);
-
-        // Ensure pathIndices[i] is 0 or 1
+        
+        // Ensure pathIndices is binary (0 or 1)
         pathIndices[i] * (1 - pathIndices[i]) === 0;
 
-        // Corrected multiplexer logic using single multiplication per constraint
-        left[i] <== computedPath[i] + pathIndices[i] * (pathElements[i] - computedPath[i]);
-        right[i] <== pathElements[i] + pathIndices[i] * (computedPath[i] - pathElements[i]);
+        left_tmp1[i] <== pathIndices[i] * pathElements[i];
+        left_tmp2[i] <== (1 - pathIndices[i]) * computedPath[i];
+        left[i] <== left_tmp1[i] + left_tmp2[i];
+        
+        right_tmp1[i] <== (1 - pathIndices[i]) * pathElements[i];
+        right_tmp2[i] <== pathIndices[i] * computedPath[i];
+        right[i] <== right_tmp1[i] + right_tmp2[i];
 
-        // Connect to Poseidon hash function
         hashers[i].inputs[0] <== left[i];
         hashers[i].inputs[1] <== right[i];
-
-        // Update computedPath
-        computedPath[i + 1] <== hashers[i].out;
+        
+        computedPath[i+1] <== hashers[i].out;
     }
-
-    // Ensure the computed root matches the input root
+    
     root === computedPath[depth];
 }
 
+// Rest of the circuit remains unchanged
 template VoteCircuit() {
     // Inputs (private = hidden, public = visible)
     signal input secret;       // Private: Random number from user
