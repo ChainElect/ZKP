@@ -1,10 +1,19 @@
 {
+  "name": "hardhat-project",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "chai": "^4.5.0",
+    "circom_tester": "^0.0.20",
+    "hardhat": "^2.22.18",
+    "mocha": "^11.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.2.0",
+    "@types/mocha": "^10.0.10",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
-    "hardhat": "^2.22.18",
-    "merkletreejs": "^0.4.1",
-    "snarkjs": "^0.7.5"
+    "wget": "^0.0.1"
   }
 }
