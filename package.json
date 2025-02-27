@@ -32,5 +32,6 @@
       "^.+\\.jsx?$": "babel-jest"
     }
   },
-  "presets": ["@babel/preset-env"]
+  "presets": ["@babel/preset-env"],
+  "type": "module"
 }

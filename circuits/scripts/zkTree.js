@@ -5,13 +5,13 @@ import { BigNumber, Contract } from "ethers"
 
 const ZERO_VALUE = BigNumber.from('21663839004416932945382355908790599225266501822907911457504978515578255421292') // = keccak256("tornado") % FIELD_SIZE
 
-import loadWebAssembly from './Verifier'
+import loadWebAssembly from '../build/Verifier_js/Verifier.wasm'
 
 export function getVerifierWASM() {
     return loadWebAssembly().buffer
 }
 
-function calculateHash(mimc, left, right) {
+function calculateHash(mimc, left, right) { 
     return BigNumber.from(mimc.F.toString(mimc.multiHash([left, right])))
 }
 
