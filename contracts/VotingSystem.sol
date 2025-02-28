@@ -3,22 +3,21 @@ pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Structs/ElectionStructs.sol";
-import "./votingVerifier.sol";
+import "../circuits/contracts/ZKTree.sol";
 import "./Events/ElectionEvents.sol";
 
 /// @title Voting System with zk-SNARK Verification
 /// @notice This contract manages elections and verifies votes using zk-SNARK proofs.
-contract VotingSystem is Ownable, ElectionEvents {
+contract VotingSystem is Ownable, ZKTree {
     mapping(uint256 => ElectionDetails) private elections; // Store elections by ID
     uint256 public electionCount; // Total number of elections created
 
-    // Integrate the Groth16Verifier as a contract instance or inherit it
-    Groth16Verifier public verifier;
-
     /// @notice Constructor to initialize the contract with the deployer as the owner and verifier address
-    constructor(address _verifierAddress) Ownable(msg.sender) {
-        verifier = Groth16Verifier(_verifierAddress);
-    }
+    constructor(
+        IVerifier _verifier,
+        uint32 _levels,
+        IHasher _hasher
+    ) Ownable(msg.sender) ZKTree(_levels, _hasher, _verifier) {}
 
     /// @notice Modifier to ensure the election is ongoing
     modifier electionOngoing(uint256 electionId) {
@@ -69,31 +68,22 @@ contract VotingSystem is Ownable, ElectionEvents {
             })
         );
 
-        emit PartyAdded(
-            electionId,
-            election.parties.length,
-            _partyName,
-            _description
-        );
-    }
-    /// @notice Verify a vote using a proof 
-    function verifyProof(
-        uint[2] calldata proofA,
-        uint[2][2] calldata proofB,
-        uint[2] calldata proofC,
-        uint[4] calldata publicSignals
-    ) internal view returns (bool) {
-        // Verify the proof
-        return verifier.verifyProof(proofA, proofB, proofC, publicSignals);
+        // emit PartyAdded(
+        //     electionId,
+        //     election.parties.length,
+        //     _partyName,
+        //     _description
+        // );
     }
 
     function vote(
         uint256 electionId,
         uint256 partyId,
+        uint256 _nullifier,
+        uint256 _root,
         uint[2] calldata proofA,
         uint[2][2] calldata proofB,
-        uint[2] calldata proofC,
-        uint[4] calldata publicSignals
+        uint[2] calldata proofC
     ) public electionOngoing(electionId) {
         ElectionDetails storage election = elections[electionId];
 
@@ -103,43 +93,27 @@ contract VotingSystem is Ownable, ElectionEvents {
             "Invalid party ID"
         );
 
-        // Verify ZKP
-        require(
-            verifyProof(proofA, proofB, proofC, publicSignals),
-            "Invalid proof"
-        );
-
-        // Ensure voter uniqueness using public signal (e.g., hashed voter ID)
-        require(
-            !election.hasVoted[address(uint160(publicSignals[0]))],
-            "Voter has already voted"
-        );
-
-        // Mark the voter as voted
-        election.hasVoted[address(uint160(publicSignals[0]))] = true;
+        // Verify the proof
+        _nullify(bytes32(_nullifier), bytes32(_root), proofA, proofB, proofC);
 
         // Increment vote count
         election.parties[partyId - 1].voteCount++;
 
-        emit Voted(electionId, partyId, msg.sender);
+        //emit Voted(electionId, partyId, msg.sender);
     }
 
     /// @notice Returns all parties in an election
-    function getElectionParties(uint256 electionId)
-        external
-        view
-        returns (Party[] memory)
-    {
+    function getElectionParties(
+        uint256 electionId
+    ) external view returns (Party[] memory) {
         return elections[electionId].parties;
     }
 
     /// @notice Get results of a closed election
     /// @dev In a real zk system, results would be computed off-chain and verified
-    function getResults(uint256 electionId)
-        public
-        view
-        returns (Party[] memory)
-    {
+    function getResults(
+        uint256 electionId
+    ) public view returns (Party[] memory) {
         ElectionDetails storage election = elections[electionId];
         require(
             block.timestamp > election.endTime,
@@ -150,7 +124,9 @@ contract VotingSystem is Ownable, ElectionEvents {
     }
 
     /// @notice Get details of an election by ID
-    function getElectionDetails(uint256 electionId)
+    function getElectionDetails(
+        uint256 electionId
+    )
         public
         view
         returns (

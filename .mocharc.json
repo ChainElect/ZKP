@@ -1,0 +1,10 @@
+{
+    "extension": [
+        "mjs"
+    ],
+    "node-option": [
+        "experimental-vm-modules"
+    ],
+    "timeout": 20000,
+    "exit": true
+}
