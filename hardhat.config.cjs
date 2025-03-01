@@ -1,6 +1,11 @@
-require('@nomicfoundation/hardhat-toolbox');
+require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-verify");
+const dotenv = require("dotenv");
 
-module.exports = {
+dotenv.config();
+
+/** @type import('hardhat/config').HardhatUserConfig */
+const config = {
   solidity: {
     compilers: [
       {
@@ -32,8 +37,22 @@ module.exports = {
       }
     ]
   },
+  networks: {
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL || "",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 11155111
+    }
+  },
+  etherscan: {
+    apiKey: {
+      sepolia: process.env.ETHERSCAN_API_KEY
+    }
+  },
   typechain: {
     outDir: 'typechain-types',
     target: 'ethers-v5',
-  },
+  }
 };
+
+module.exports = config;

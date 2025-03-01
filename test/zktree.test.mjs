@@ -228,4 +228,6 @@ describe("ZKTree Smart contract test", () => {
 
     await zktreetest.nullify(cd.nullifierHash, cd.root, cd.proof_a, cd.proof_b, cd.proof_c);
   });
+
+  // todo: test updateRoot
 });
