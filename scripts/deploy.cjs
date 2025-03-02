@@ -37,17 +37,24 @@ async function main() {
   await verifier.waitForDeployment();
   console.log("Verifier deployed to:", verifierAddress);
 
-  // Deploy ZKTreeTest
+  // Deploy ZKTree
   console.log("\nDeploying ZKTree...");
-  const ZKTreeTest = await ethers.getContractFactory("contracts/ZKTree.sol:ZKTree");
-  const zktreetest = await ZKTreeTest.deploy(
+  const ZKTree = await ethers.getContractFactory("contracts/ZKTree.sol:ZKTree");
+  const zktree = await ZKTree.deploy(
     TREE_LEVELS,
     mimcspongeAddress,
     verifierAddress
   );
-  await zktreetest.waitForDeployment();
-  const zktreeAddress = await zktreetest.getAddress();
-  console.log("ZKTreeTest deployed to:", zktreeAddress);
+  await zktree.waitForDeployment();
+  const zktreeAddress = await zktree.getAddress();
+  console.log("ZKTree deployed to:", zktreeAddress);
+
+  console.log("\nDeploying VotingSystem...");
+  const VotingSystem = await ethers.getContractFactory("VotingSystem");
+  const votingSystem = await VotingSystem.deploy(zktreeAddress);
+  const votingSystemAddress = await votingSystem.getAddress();
+  await votingSystem.waitForDeployment();
+  console.log("VotingSystem deployed to:", votingSystemAddress);
 
   // Verification preparation
   // Verification preparation
@@ -62,8 +69,11 @@ async function main() {
     const verifierDeployTx = verifier.deploymentTransaction();
     await verifierDeployTx.wait(6);
 
-    const zkTreeDeployTx = zktreetest.deploymentTransaction();
+    const zkTreeDeployTx = zktree.deploymentTransaction();
     await zkTreeDeployTx.wait(6);
+
+    const votingSystemDeployTx = votingSystem.deploymentTransaction();
+    await votingSystemDeployTx.wait(6);
 
     // Rest of the verification code remains the same
     console.log("\nVerifying Verifier...");
@@ -80,6 +90,12 @@ async function main() {
         mimcspongeAddress,
         verifierAddress
       ],
+    });
+
+    console.log("\nVerifying VotingSystem...");
+    await hre.run("verify:verify", {
+      address: votingSystemAddress,
+      constructorArguments: [zktreeAddress],
     });
   }
 
