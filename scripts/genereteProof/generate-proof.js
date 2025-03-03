@@ -1,7 +1,7 @@
 const { groth16 } = require('snarkjs');
 const path = require('path');
 const fs = require('fs');
-const wc = require('../circuits/build/Verifier_js/witness_calculator.js');
+const wc = require('../../circuits/build/Verifier_js/witness_calculator.js');
 
 async function generateWitnessAndProof(inputs) {
     // Generate witness
