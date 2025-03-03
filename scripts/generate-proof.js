@@ -1,11 +1,11 @@
 const { groth16 } = require('snarkjs');
 const path = require('path');
 const fs = require('fs');
-const wc = require('../build/Verifier_js/witness_calculator.js');
+const wc = require('../circuits/build/Verifier_js/witness_calculator.js');
 
 async function generateWitnessAndProof(inputs) {
     // Generate witness
-    const buffer = fs.readFileSync(path.join(__dirname, '../build/Verifier_js/Verifier.wasm'));
+    const buffer = fs.readFileSync(path.join(__dirname, '../circuits/build/Verifier_js/Verifier.wasm'));
     const witnessCalculator = await wc(buffer);
     const wtns = await witnessCalculator.calculateWTNSBin(inputs, 0);
 
@@ -25,8 +25,8 @@ async function generateWitnessAndProof(inputs) {
         JSON.stringify(publicSignals, null, 2)
     );
 
-    // Verify the proof
-    const vKey = JSON.parse(fs.readFileSync(path.join(__dirname, '../keys/verification_key.json')).toString());
+    // Verify the proof 
+    const vKey = JSON.parse(fs.readFileSync(path.join(__dirname, '../circuits/keys/verification_key.json')).toString());
     const verified = await groth16.verify(vKey, publicSignals, proof);
 
     console.log('Proof verified:', verified);

@@ -18,7 +18,7 @@ import {
   getVerifierWASM,
   convertCallData,
   calculateMerkleRootAndZKProof
-} from '../circuits/scripts/zkTree.js';
+} from '../scripts/zkTree.js';
 
 const SEED = "mimcsponge";
 const TREE_LEVELS = 20;

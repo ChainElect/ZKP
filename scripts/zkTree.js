@@ -10,7 +10,7 @@ const ZERO_VALUE = BigInt('21663839004416932945382355908790599225266501822907911
 
 export function getVerifierWASM() {
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const wasmPath = path.join(__dirname, '../build/Verifier_js/Verifier.wasm');
+    const wasmPath = path.join(__dirname, '../circuits/build/Verifier_js/Verifier.wasm');
     return wasmPath;
 }
 
