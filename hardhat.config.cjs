@@ -4,21 +4,11 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-/** @type import('hardhat/config').HardhatUserConfig */
-const config = {
+module.exports = {
   solidity: {
     compilers: [
       {
         version: "0.8.20",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200
-          }
-        }
-      },
-      {
-        version: "0.8.18",
         settings: {
           optimizer: {
             enabled: true,
@@ -45,14 +35,9 @@ const config = {
     }
   },
   etherscan: {
-    apiKey: {
-      sepolia: process.env.ETHERSCAN_API_KEY
-    }
+    apiKey: process.env.ETHERSCAN_API_KEY
   },
-  typechain: {
-    outDir: 'typechain-types',
-    target: 'ethers-v5',
+  sourcify: {
+    enabled: true
   }
 };
-
-module.exports = config;

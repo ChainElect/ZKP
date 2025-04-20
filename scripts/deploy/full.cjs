@@ -1,12 +1,10 @@
 const { ethers, network } = require("hardhat");
 const { buildMimcSponge, mimcSpongecontract } = require("circomlibjs");
 
+// Configuration
 const TREE_LEVELS = 20;
 const SEED = "mimcsponge";
 const ROUNDS = 220;
-
-// Delay helper
-const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -16,7 +14,9 @@ async function main() {
 
   // Deploy MiMCSponge
   console.log("\nDeploying MiMCSponge...");
-  const mimcSpongeAbi = mimcSpongecontract.abi.filter(entry => entry.type !== "constructor");
+  const mimcSpongeAbi = mimcSpongecontract.abi.filter(
+    entry => entry.type !== "constructor"
+  );
 
   const MiMCSponge = new ethers.ContractFactory(
     mimcSpongeAbi,
@@ -38,54 +38,51 @@ async function main() {
   console.log("Verifier deployed to:", verifierAddress);
 
   // Deploy ZKTree
-  console.log("\nDeploying ZKTree...");
-  const ZKTree = await ethers.getContractFactory("contracts/ZKTree.sol:ZKTree");
-  const zktree = await ZKTree.deploy(
+  console.log("\nDeploying ZKTree Test...");
+  const ZKTreeTest = await ethers.getContractFactory("ZKTreeTest");
+  const zktree = await ZKTreeTest.deploy(
     TREE_LEVELS,
     mimcspongeAddress,
     verifierAddress
   );
   await zktree.waitForDeployment();
   const zktreeAddress = await zktree.getAddress();
-  console.log("ZKTree deployed to:", zktreeAddress);
+  console.log("ZKTreeTest deployed to:", zktreeAddress);
 
-  // Deploy VotingSystem
+  // Deploy VotingSystem - IMPORTANT FIX HERE
   console.log("\nDeploying VotingSystem...");
   const VotingSystem = await ethers.getContractFactory("VotingSystem");
+  // Correct constructor arguments
   const votingSystem = await VotingSystem.deploy(
-    verifierAddress,
-    TREE_LEVELS,
-    mimcspongeAddress
+    verifierAddress,  // Pass verifier address directly
+    TREE_LEVELS,      // Pass tree levels
+    mimcspongeAddress // Pass MiMC hasher address
   );
   await votingSystem.waitForDeployment();
   const votingSystemAddress = await votingSystem.getAddress();
   console.log("VotingSystem deployed to:", votingSystemAddress);
 
-  // Verification (only on Sepolia)
-  if (network.config.chainId === 11155111) {
-    console.log("\nPreparing for verification...");
-    console.log("Waiting for block confirmations...");
+  // Wait longer for transactions to be confirmed
+  console.log("\nWaiting for more block confirmations...");
+  await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 60 seconds
 
-    await mimcsponge.deploymentTransaction().wait(6);
-    await verifier.deploymentTransaction().wait(6);
-    await zktree.deploymentTransaction().wait(6);
-    await votingSystem.deploymentTransaction().wait(6);
-
-    // Wait a bit longer for Etherscan to catch up
-    await delay(30000);
-
+  // Verification
+  if (network.name === "sepolia") {
+    console.log("\nVerifying contracts on Etherscan...");
+    
     try {
       console.log("\nVerifying Verifier...");
       await hre.run("verify:verify", {
         address: verifierAddress,
         constructorArguments: [],
+        contract: "contracts/Verifier.sol:Groth16Verifier"
       });
-    } catch (err) {
-      console.warn("Verifier verification failed:", err.message);
+    } catch (error) {
+      console.log("Verifier verification error:", error.message);
     }
 
     try {
-      console.log("\nVerifying ZKTree...");
+      console.log("\nVerifying ZKTreeTest...");
       await hre.run("verify:verify", {
         address: zktreeAddress,
         constructorArguments: [
@@ -93,9 +90,10 @@ async function main() {
           mimcspongeAddress,
           verifierAddress
         ],
+        contract: "contracts/ZKTreeTest.sol:ZKTreeTest"
       });
-    } catch (err) {
-      console.warn("ZKTree verification failed:", err.message);
+    } catch (error) {
+      console.log("ZKTreeTest verification error:", error.message);
     }
 
     try {
@@ -107,22 +105,23 @@ async function main() {
           TREE_LEVELS,
           mimcspongeAddress
         ],
+        contract: "contracts/VotingSystem.sol:VotingSystem"
       });
-    } catch (err) {
-      console.warn("VotingSystem verification failed:", err.message);
+    } catch (error) {
+      console.log("VotingSystem verification error:", error.message);
     }
   }
 
   console.log("\n🎉 Deployment complete!");
-  console.log("MiMCSponge:     ", mimcspongeAddress);
-  console.log("Verifier:       ", verifierAddress);
-  console.log("ZKTree:         ", zktreeAddress);
-  console.log("VotingSystem:   ", votingSystemAddress);
+  console.log("MiMCSponge:      " + mimcspongeAddress);
+  console.log("Verifier:        " + verifierAddress);
+  console.log("ZKTreeTest:      " + zktreeAddress);
+  console.log("VotingSystem:    " + votingSystemAddress);
 }
 
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error("🚨 Deployment failed:", error);
+    console.error(error);
     process.exit(1);
   });

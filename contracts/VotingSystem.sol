@@ -1,9 +1,9 @@
-/// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Structs/ElectionStructs.sol";
-import "../circuits/contracts/ZKTree.sol";
+import "./ZKTree.sol";
 import "./Events/ElectionEvents.sol";
 
 /// @title Voting System with zk-SNARK Verification
