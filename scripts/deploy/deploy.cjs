@@ -1,5 +1,6 @@
-const { ethers, network } = require("hardhat");
-const { buildMimcSponge, mimcSpongecontract } = require("circomlibjs");
+// deploy.js - Deployment script for ZK voting contracts
+import { ethers } from "hardhat";
+import { buildMimcSponge, mimcSpongecontract } from "circomlibjs";
 
 // Configuration
 const TREE_LEVELS = 20;
@@ -39,7 +40,7 @@ async function main() {
 
   // Deploy ZKTree
   console.log("\nDeploying ZKTree...");
-  const ZKTree = await ethers.getContractFactory("contracts/ZKTree.sol:ZKTree");
+  const ZKTree = await ethers.getContractFactory("ZKTree");
   const zktree = await ZKTree.deploy(
     TREE_LEVELS,
     mimcspongeAddress,
@@ -49,59 +50,31 @@ async function main() {
   const zktreeAddress = await zktree.getAddress();
   console.log("ZKTree deployed to:", zktreeAddress);
 
+  // Deploy VotingSystem
   console.log("\nDeploying VotingSystem...");
   const VotingSystem = await ethers.getContractFactory("VotingSystem");
-  const votingSystem = await VotingSystem.deploy(zktreeAddress);
+  const votingSystem = await VotingSystem.deploy(
+    verifierAddress,  // Pass the Verifier address
+    TREE_LEVELS,      // Pass tree levels directly 
+    mimcspongeAddress // Pass the MiMC hasher address
+  );
   const votingSystemAddress = await votingSystem.getAddress();
   await votingSystem.waitForDeployment();
   console.log("VotingSystem deployed to:", votingSystemAddress);
 
-  // Verification preparation
-  // Verification preparation
-  console.log("\nPreparing for verification...");
-  if (network.config.chainId === 11155111) { // Sepolia chain ID
-    console.log("Waiting for block confirmations...");
-
-    // Wait for 6 blocks after deployment using transaction's wait method
-    const mimcSpongeDeployTx = mimcsponge.deploymentTransaction();
-    await mimcSpongeDeployTx.wait(6);
-
-    const verifierDeployTx = verifier.deploymentTransaction();
-    await verifierDeployTx.wait(6);
-
-    const zkTreeDeployTx = zktree.deploymentTransaction();
-    await zkTreeDeployTx.wait(6);
-
-    const votingSystemDeployTx = votingSystem.deploymentTransaction();
-    await votingSystemDeployTx.wait(6);
-
-    // Rest of the verification code remains the same
-    console.log("\nVerifying Verifier...");
-    await hre.run("verify:verify", {
-      address: verifierAddress,
-      constructorArguments: [],
-    });
-
-    console.log("\nVerifying ZKTree...");
-    await hre.run("verify:verify", {
-      address: zktreeAddress,
-      constructorArguments: [
-        TREE_LEVELS,
-        mimcspongeAddress,
-        verifierAddress
-      ],
-    });
-
-    console.log("\nVerifying VotingSystem...");
-    await hre.run("verify:verify", {
-      address: votingSystemAddress,
-      constructorArguments: [zktreeAddress],
-    });
-  }
-
-  console.log("\nDeployment complete!");
+  // Log all deployed contract addresses for verification
+  console.log("\n----- DEPLOYED CONTRACTS -----");
+  console.log("MiMCSponge:", mimcspongeAddress);
+  console.log("Verifier:", verifierAddress);
+  console.log("ZKTree:", zktreeAddress);
+  console.log("VotingSystem:", votingSystemAddress);
+  console.log("\nPlease wait 5-10 minutes before running verify.js to ensure contracts are fully propagated to Etherscan");
+  console.log("Copy these addresses to verify.js before running the verification script");
+  console.log("-----------------------------");
 }
 
+// We recommend this pattern to be able to use async/await everywhere
+// and properly handle errors.
 main()
   .then(() => process.exit(0))
   .catch((error) => {

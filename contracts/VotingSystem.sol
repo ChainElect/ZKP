@@ -76,6 +76,7 @@ contract VotingSystem is Ownable, ZKTree {
         // );
     }
 
+    // Updated vote function in VotingSystem.sol
     function vote(
         uint256 electionId,
         uint256 partyId,
@@ -99,7 +100,10 @@ contract VotingSystem is Ownable, ZKTree {
         // Increment vote count
         election.parties[partyId - 1].voteCount++;
 
-        //emit Voted(electionId, partyId, msg.sender);
+        // Mark voter as having voted
+        election.hasVoted[msg.sender] = true;
+
+        // emit Voted(electionId, partyId, msg.sender);
     }
 
     /// @notice Returns all parties in an election
